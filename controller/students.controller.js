@@ -1,19 +1,39 @@
 const Student = require("../model/student.model");
 var bcrypt = require('bcryptjs');
-const { validationResult} = require("express-validator")
+
 
 
 
 const studentGet = async (req, res) => {
     try {
-        const { name } = req.query;
-        hasName = await Student.find({ name });
-        console.log(hasName);
-        res.json(hasName)
+            const {skip = 0, limit = 5} = req.query;
+            const [total, usuarios] = await Promise.all([ 
+                Student.countDocuments(),
+                Student.find({})
+                    .skip(parseInt(skip))
+                    .limit(parseInt(limit))
+                ])
+
+            res.json({total, usuarios});
+
+        
     } catch (error) {
         console.error(error);
     }
-    // true
+
+};
+
+const studentSearchGet = async (req, res) => {
+    try {
+            const {name} = req.query;
+            console.log(req.query);
+            const user = await Student.find({name}).exec();
+            res.json(user);
+
+        
+    } catch (error) {
+        console.error(error);
+    }
 };
 
 const studentPost = async (req, res) => {
@@ -37,18 +57,19 @@ const studentDelete = (req, res) => {
 
 };
 
-const studentPut = (req, res) => {
+const studentPut = async (req, res) => {
     const {id} = req.params;
     console.log(id);
     const body = req.body;
     console.log(body);
-    const resp = Student.findByIdAndUpdate(id, {body});
+    const resp = await Student.findByIdAndUpdate(id, body).exec();
     console.log(resp);
     res.json({msg: " Usuario update"});
 }
 
 module.exports = {
     studentGet,
+    studentSearchGet,
     studentPost,
     studentDelete,
     studentPut
